@@ -383,3 +383,63 @@ All 10 integration tests run against the live portal, validating:
    - *Trade-off*: The `/api/v1/hierarchy` endpoint caches the full grid tree for 5 minutes. This reduces excessive cryptographic export calls to the legacy portal while ensuring sub-millisecond response latency.
 4. **Intentional Omissions**:
    - Write/Mutation endpoints (e.g., updating meter status) are omitted because the legacy portal operates strictly as a read-only monitoring interface.
+
+---
+
+## Deployment Guide
+
+### Option 1: Docker / Docker Compose (Recommended)
+
+1. Build and run via Docker Compose:
+   ```bash
+   docker compose up -d --build
+   ```
+2. Verify the service is running:
+   ```bash
+   curl http://localhost:8000/api/v1/health
+   ```
+3. Stop the container:
+   ```bash
+   docker compose down
+   ```
+
+### Option 2: Cloud PaaS (Render, Railway, Fly.io)
+
+- **Render.com**: Push this repo to GitHub, click **New + -> Blueprint**, and connect your repository. Render automatically reads [`render.yaml`](./render.yaml) and provisions the service.
+- **Railway / Fly.io / Heroku**: Uses [`Dockerfile`](./Dockerfile) or [`Procfile`](./Procfile) automatically.
+
+### Option 3: Traditional Linux VM / VPS (Systemd + Nginx)
+
+1. Install dependencies on your server:
+   ```bash
+   sudo apt update && sudo apt install -y python3-pip python3-venv nginx
+   ```
+2. Clone repository & create virtual environment:
+   ```bash
+   git clone <your-repo-url> /opt/flock-energy-api
+   cd /opt/flock-energy-api
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+3. Create Systemd Service (`/etc/systemd/system/urja-api.service`):
+   ```ini
+   [Unit]
+   Description=Flock Energy Urja API Wrapper
+   After=network.target
+
+   [Service]
+   User=www-data
+   WorkingDirectory=/opt/flock-energy-api
+   ExecStart=/opt/flock-energy-api/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+4. Enable and start the service:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now urja-api
+   ```
+

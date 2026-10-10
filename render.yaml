@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: flock-energy-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: URJA_BASE_URL
+        value: https://urja-ops.flockenergy.tech
+      - key: URJA_OPERATOR_EMAIL
+        value: operator@urja.local
+      - key: URJA_OPERATOR_PASSWORD
+        value: urja-ops-2026
+      - key: REQUEST_TIMEOUT
+        value: 15.0

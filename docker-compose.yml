@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flock_energy_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - URJA_BASE_URL=https://urja-ops.flockenergy.tech
+      - URJA_OPERATOR_EMAIL=operator@urja.local
+      - URJA_OPERATOR_PASSWORD=urja-ops-2026
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - REQUEST_TIMEOUT=15.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
